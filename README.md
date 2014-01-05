@@ -3,17 +3,8 @@ scala-potrace
 
 Scala interface for using the [Potrace algorithm][potrace] by Peter Selinger.
 
-[potrace](http://potrace.sourceforge.net/)
+[potrace]: http://potrace.sourceforge.net/
 
-Download
---------
-
-If you are using SBT, you can add the package by adding the following lines to
-your `build.sbt` file.
-
-~~~ scala
-libraryDependencies += "de.vorb" %% "potrace" % "0.0.+"
-~~~
 
 License
 -------
