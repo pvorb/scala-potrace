@@ -1,25 +1,32 @@
 package de.vorb.potrace
 
 import java.awt.image.BufferedImage
-import java.io.BufferedOutputStream
-import scala.concurrent.{ Future, blocking }
-import scala.concurrent.ExecutionContext
-import javax.imageio.ImageIO
-import java.io.File
-import scala.concurrent.Await
-import scala.concurrent.duration._
-import java.io.FileOutputStream
-import scala.concurrent.ExecutionContext.Implicits
+import java.io.{ BufferedOutputStream, OutputStream }
+import scala.Array.canBuildFrom
+import scala.concurrent.{ ExecutionContext, Future, blocking }
+import scala.xml.XML
 import java.io.InputStreamReader
-import java.io.BufferedReader
+import javax.xml.parsers.SAXParserFactory
 
 object Potrace {
+  private lazy val factory = {
+    val factory = SAXParserFactory.newInstance()
+    factory.setValidating(false)
+    factory.setFeature("http://xml.org/sax/features/validation", false)
+    factory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false)
+    factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
+    factory.setFeature("http://xml.org/sax/features/external-general-entities", false)
+    factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false)
+    factory
+  }
+
   private def writeImageToPBM(img: BufferedImage, os: BufferedOutputStream)(
     implicit context: ExecutionContext): Future[Unit] = Future {
-    blocking {
-      var x = 0
-      var y = 0
 
+    var x = 0
+    var y = 0
+
+    blocking {
       val height = img.getHeight
       val width = img.getWidth
 
@@ -51,12 +58,18 @@ object Potrace {
   }
 
   def apply(img: BufferedImage)(
-    implicit context: ExecutionContext = ExecutionContext.Implicits.global) = {
+    implicit context: ExecutionContext = ExecutionContext.Implicits.global): Future[VectorGraph] = {
     val pb = new ProcessBuilder("potrace", "--svg")
     val p = pb.start()
 
     writeImageToPBM(img, new BufferedOutputStream(p.getOutputStream))
 
-    p.getInputStream
+    Future {
+      val doc = blocking {
+        XML.withSAXParser(factory.newSAXParser).load(p.getInputStream)
+      }
+
+      new VectorGraph(doc)
+    }
   }
 }
