@@ -1,4 +1,4 @@
-name := "potrace"
+name := "scala-potrace"
 
 organization := "de.vorb"
 
