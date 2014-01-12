@@ -52,13 +52,14 @@ object Potrace {
         y += 1
       }
 
-      os.flush()
       os.close()
     }
   }
 
   def apply(img: BufferedImage)(
     implicit context: ExecutionContext = ExecutionContext.Implicits.global): Future[VectorGraph] = {
+    require(img != null, "invalid image")
+
     val pb = new ProcessBuilder("potrace", "--svg")
     val p = pb.start()
 
